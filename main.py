@@ -1,14 +1,13 @@
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
-from kivymd.uix.button import MDIconButton
 from kivymd.uix.scrollview import MDScrollView
 from kivy.core.window import Window
 
-
+Window.size = (300, 500)
 
 helper1 = '''
-#------NAVIGATIONDRAWER-CONTENTS----
+#------NAVIGATION-DRAWER-CONTENTS----
 
 <ContentNavigationDrawer>
 	MDNavigationDrawer:
@@ -23,20 +22,20 @@ helper1 = '''
 	
 			MDNavigationDrawerDivider:
 				
-#---------NAVIGATIONDRAWER-APPS-----------	
+#---------NAVIGATION-DRAWER-APPS-----------	
 			MDNavigationDrawerLabel:
 				text: 'Apps'
 			MDNavigationDrawerItem:
 				icon: 'calculator-variant-outline'
 				text: 'Calculator'
 				right_text: '+-÷×'
-				on_press: 
+				on_release: 
 					root.screen_manager.current = 'calculator'
 					root.nav_drawer.set_state('close')
 			
 			MDNavigationDrawerDivider:
 				
-#--------NAVIGATIONDRAWER-OTHERS-------
+#--------NAVIGATION-DRAWER-OTHERS-------
 
 			MDNavigationDrawerLabel:
 				text: 'Others'
@@ -44,18 +43,18 @@ helper1 = '''
 			MDNavigationDrawerItem:
 				icon: 'cog'
 				text: 'Settings'
-				on_press:
+				on_release:
 					root.nav_drawer.set_state('close')
 					root.screen_manager.current = 'settings'
 					
 			MDNavigationDrawerItem:
 				icon: 'information'
 				text: 'About'
-				on_press:
+				on_release:
 					root.screen_manager.current = 'about'
 					root.nav_drawer.set_state('close')
 					
-#---------------------TOPAPPBAR------------------------
+#---------------------TOP-APPBAR------------------------
 MDScreen:
 	
 	MDTopAppBar:
@@ -75,19 +74,13 @@ MDScreen:
 				MDTextField:
 					text: ''
 					id: display
-					
 					hint_text: 'Calculate!'
 					pos_hint: {'center_x':0.450, 'center_y':0.675}
 					size_hint_x: None
 					width:250
 					size_hint_y: None
 					height: 60
-					# input can be only numbers
 					input_filter: 'float'
-					
-					
-					
-					
 					on_text: if self.text == '01': self.text = '1'
 					on_text: if self.text == '02': self.text = '2'
 					on_text: if self.text == '03': self.text = '3'
@@ -99,59 +92,43 @@ MDScreen:
 					on_text: if self.text == '09': self.text = '9'
 					on_text: if self.text == '00': self.text = '0'
 					
-					
-			
-					
-					
-					
 				MDFlatButton:
 					id: comma_button
 					text: '.'
 					size_hint: 0.25,0.15
-					
-					
-					on_press: display.text += self.text if not display.text[-1] in '.+-/*' else ""
-				
-					
+					on_press: display.text += self.text
 					on_press: if display.text == "": display.text = "0"
-					# disable comma button if there is already a comma in the text field until the user presses operators
-					on_press: comma_button.disabled = True if '.' in display.text and not display.text[-1] in '+-/*' else False
+					disabled: True if display.text == "" or display.text[-1] == "." else False
+					# if there is no text in the display, the comma button is disabled
+					# if the last character in the display is a comma, the comma button is disabled
+					disabled: True if display.text[-1:] == "." or display.text == "" else False
 					
 					
-						
-					
-					
-					
+				
 					
 				MDFlatButton:
 					text: '0'
 					pos_hint: {'center_x': 0.375}
 					size_hint: 0.25,0.15
-					on_press: display.text += self.text
+					on_release: display.text += self.text
 					on_press: if display.text == "0": display.text = "0"
-					
 					disabled: True if display.text == "0" else False
-					
 				
 				MDFlatButton:
 					text: '='
 					pos_hint: {'center_x': 0.625}
 					size_hint: 0.25,0.15
 					on_press: display.text = str(eval(display.text))
-					# if the text has no numbers, the button is disabled
 					disabled: not any(char.isdigit() for char in display.text)
-					
-					disabled: True if display.text == "" else False
-					# try to catch the zero division error
+					disabled: True if display.text == "" or display.text[-1] in "./-*+" else False
 					on_press: app.catch_error()
-					
-					
 					
 				MDFlatButton:
 					text: '+'
 					pos_hint: {'center_x': 0.875}
 					size_hint: 0.25,0.15
 					on_press: display.text += self.text
+					disabled: True if display.text== "" or display.text[-1] in "+-/*" else False
 					
 				MDFlatButton:
 					text: '1'
@@ -176,8 +153,7 @@ MDScreen:
 					pos_hint: {'center_x': 0.875, 'center_y': 0.225}
 					size_hint: 0.25,0.15
 					on_press: display.text += self.text
-					
-					
+					disabled: True if display.text == "0" or "-" or display.text[-1] in "-" else False
 					
 				MDFlatButton:
 					text: '4'
@@ -202,6 +178,7 @@ MDScreen:
 					pos_hint: {'center_x': 0.875, 'center_y': 0.375}
 					size_hint: 0.25, 0.15
 					on_press: display.text += self.text
+					disabled: True if display.text == "" or display.text[-1] in "./-*+" else False
 					
 				MDFlatButton:
 					text: '7'
@@ -226,6 +203,8 @@ MDScreen:
 					pos_hint: {'center_x': 0.875, 'center_y': 0.525}
 					size_hint: 0.25, 0.15
 					on_press: display.text += self.text
+					disabled: True if display.text == "" or display.text[-1] in "./-*+" else False
+				
 				
 				
 					
@@ -234,10 +213,13 @@ MDScreen:
 					pos_hint: {'center_x': 0.875, 'center_y': 0.675}
 					size_hint: 0.25, 0.15
 					on_press: display.text = display.text[:-1]
-					# if pressed long, the text is cleared
-					on_press: display.text = "0" if len(display.text) == 1 else display.text
+					# if the text has no numbers, the button is disabled
+					disabled: not any(char.isdigit() for char in display.text)
 					
+		
 					
+
+				
 				
 					
 					
@@ -272,13 +254,12 @@ MDScreen:
 '''
 
 
-
 class ContentNavigationDrawer(MDScrollView):
     screen_manager = ObjectProperty()
     nav_drawer = ObjectProperty()
 
 
-class MYMDApp(MDApp):
+class MyApp(MDApp):
     def build(self):
         self.theme_cls.theme_style = 'Dark'
         return Builder.load_string(helper1)
@@ -291,4 +272,4 @@ class MYMDApp(MDApp):
 
 
 if __name__ == '__main__':
-    MYMDApp().run()
+    MyApp().run()
